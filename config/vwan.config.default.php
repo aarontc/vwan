@@ -1,0 +1,5 @@
+<?php
+
+	$CONFIG['helloworld'] = true;
+
+?>
