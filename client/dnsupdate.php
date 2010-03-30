@@ -17,7 +17,7 @@
 	// collect statically mapped IP computers name and IP
 	$f[] = explode("\n",file_get_contents("/etc/hosts"));
 
-	foreach($f[0] as $fl) {
+	foreach($f[0] as $fl) { // parse dnsmasq.conf
 		if(preg_match("/^domain=(.*)/", $fl, $domain)) {
 			$domain = $domain[1];
 			break;
@@ -34,22 +34,25 @@
 	$doc->appendChild( $r );
 
 	for($i = 0; $i < $l; $i++) {
-		if($i < $a && strlen($f[1][$i]) > 0) { // dhcp.leases
+		if($i < $a && strlen($f[1][$i]) > 0) { // parse dhcp.leases
 			$p = preg_split("/[\s]+/", $f[1][$i], -1, PREG_SPLIT_NO_EMPTY);
 			// build XML here
-			appendToXmlDoc($doc, $r, "a", $p[3], $p[2]);
+			if($p[3] != "*") appendToXmlDoc($doc, $r, "a", $p[3], $p[2]);
 		}
-		if($i < $b && strlen($f[2][$i]) > 0 && !preg_match("/^[\s]*#/", $f[2][$i])) { // hosts
+		if($i < $b && strlen($f[2][$i]) > 0 && !preg_match("/^[\s]*#/", $f[2][$i])) { // parse hosts
 			$p = preg_split("/[\s]+/", $f[2][$i], -1, PREG_SPLIT_NO_EMPTY);
-			if(!preg_match("/^127.*|^\:\:1$/", $p[0])) {
-				if(preg_match("/(.*).$domain$/i", $p[1], $m)) $p[1] = $m[1]; // remove the local domain from then host string
-				// build XML here
-				appendToXmlDoc($doc, $r, "a", $p[1], $p[0]);
-				for($j = 2; $j < count($p); $j++) {
-					if(preg_match("/(.*)\.$domain$/i", $p[$i], $m)) $p[$i] = $m[1]; // remove the local domain from then host string
-					if(strlen($t[$i]) > 0 && strcasecmp($t[$i], "localhost") && strcasecmp($t[$i], $t[1])) {
-						// build XML here
-						appendToXmlDoc($doc, $r, "cname", $p[$i], $p[1]);	
+			if(!preg_match("/^127.*|^\:\:1$/", $p[0])) { // make sure we haven't just found the loopback entry
+				$found_host_name = false;
+				for($j = 1; $j < count($p); $j++) { // go through the names associated with this IP
+					if(!preg_match("/[\.]|localhost/", $p[$j])) { // make sure that we didn't just find a fully qualified domain name or 'localhost'
+						if(!$found_host_name) { // have we found the host name?
+							$found_host_name = true;
+							// build XML here
+							appendToXmlDoc($doc, $r, "a", $p[$j], $p[0]);
+						} else { // ...if so, the rest are 'cname' entries
+							// build XML here
+							appendToXmlDoc($doc, $r, "cname", $p[$j], $p[0]);
+						}
 					}
 				}
 			}
