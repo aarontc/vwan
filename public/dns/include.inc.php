@@ -105,7 +105,7 @@
 
 
 	function ZoneGetOwner ( $zone ) {
-		$query = sprintf ( "SELECT owner FROM soa WHERE origin = '%s'",
+		$query = sprintf ( "SELECT owner FROM mydns.soa WHERE origin = '%s'",
 					mysql_real_escape_string ( $zone )
 				);
 		$res = do_query ( $query );
@@ -119,7 +119,7 @@
 	}
 
 	function ZoneGetID ( $zone ) {
-		$query = sprintf ( "SELECT id FROM soa WHERE origin = '%s'",
+		$query = sprintf ( "SELECT id FROM mydns.soa WHERE origin = '%s'",
 						mysql_real_escape_string ( $zone )
 						);
 		$res = do_query ( $query );
@@ -131,7 +131,7 @@
 	}
 
 	function ZoneGetSerial ( $zone ) {
-		$query = sprintf ( "SELECT serial FROM soa WHERE origin = '%s'",
+		$query = sprintf ( "SELECT serial FROM mydns.soa WHERE origin = '%s'",
 						mysql_real_escape_string ( $zone )
 						);
 		$res = do_query ( $query );
@@ -143,14 +143,14 @@
 	}
 
 	function ZoneDeleteRRs ( $zone_id ) {
-		$query = sprintf ( "DELETE FROM rr WHERE zone = '%s'",
+		$query = sprintf ( "DELETE FROM mydns.rr WHERE zone = '%s'",
 						mysql_real_escape_string ( $zone_id )
 						);
 		$res = do_query ( $query );
 	}
 
 	function ZoneCreateRR ( $zone_id, $rr ) {
-		$query = sprintf ( "INSERT INTO rr ( zone, name, type, data, ttl ) VALUES ( '%s', '%s', '%s', '%s', 5 )",
+		$query = sprintf ( "INSERT INTO mydns.rr ( zone, name, type, data, ttl ) VALUES ( '%s', '%s', '%s', '%s', 5 )",
 							mysql_real_escape_string ( $zone_id ),
 							mysql_real_escape_string ( $rr['name'] ),
 							mysql_real_escape_string ( $rr['type'] ),
@@ -161,7 +161,7 @@
 	}
 
 	function ZoneSetSerial ( $zone, $serial ) {
-		$query = sprintf ( "UPDATE soa SET serial='%s' WHERE origin = '%s' LIMIT 1",
+		$query = sprintf ( "UPDATE mydns.soa SET serial='%s' WHERE origin = '%s' LIMIT 1",
 						mysql_real_escape_string ( $serial ),
 						mysql_real_escape_string ( $zone )
 						);
