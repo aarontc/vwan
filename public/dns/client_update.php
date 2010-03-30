@@ -48,7 +48,7 @@
 		}
 	}
 
-	if ( strpos ( $_SERVER['HTTP_USER_AGENT'], "HyperBBQ DNS Updater" ) === FALSE ) {
+	if ( strpos ( $_SERVER['HTTP_USER_AGENT'], "MyVWAN DNS Updater" ) === FALSE ) {
 ?>
 <form method="post">
 <fieldset>
