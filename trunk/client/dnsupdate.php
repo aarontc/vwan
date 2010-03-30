@@ -50,6 +50,7 @@
 						// build XML here
 						appendToXmlDoc($doc, "cname", $p[$i], $p[1]);	
 					}
+				}
 			}
 		}
 	}
