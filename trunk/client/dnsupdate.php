@@ -1,4 +1,5 @@
 <?php
+// 	define('DEBUG', TRUE);
 	define('USERNAME', 'dummy');
 	define('PASSWORD', 'dummy');
 	$host = 'www.myvwan.com';
@@ -36,19 +37,19 @@
 		if($i < $a && strlen($f[1][$i]) > 0) { // dhcp.leases
 			$p = preg_split("/[\s]+/", $f[1][$i], -1, PREG_SPLIT_NO_EMPTY);
 			// build XML here
-			appendToXmlDoc($doc, "a", $p[3], $p[2]);
+			appendToXmlDoc($doc, $r, "a", $p[3], $p[2]);
 		}
 		if($i < $b && strlen($f[2][$i]) > 0 && !preg_match("/^[\s]*#/", $f[2][$i])) { // hosts
 			$p = preg_split("/[\s]+/", $f[2][$i], -1, PREG_SPLIT_NO_EMPTY);
 			if(!preg_match("/^127.*|^\:\:1$/", $p[0])) {
 				if(preg_match("/(.*).$domain$/i", $p[1], $m)) $p[1] = $m[1]; // remove the local domain from then host string
 				// build XML here
-				appendToXmlDoc($doc, "a", $p[1], $p[0]);
+				appendToXmlDoc($doc, $r, "a", $p[1], $p[0]);
 				for($j = 2; $j < count($p); $j++) {
 					if(preg_match("/(.*)\.$domain$/i", $p[$i], $m)) $p[$i] = $m[1]; // remove the local domain from then host string
 					if(strlen($t[$i]) > 0 && strcasecmp($t[$i], "localhost") && strcasecmp($t[$i], $t[1])) {
 						// build XML here
-						appendToXmlDoc($doc, "cname", $p[$i], $p[1]);	
+						appendToXmlDoc($doc, $r, "cname", $p[$i], $p[1]);	
 					}
 				}
 			}
@@ -58,7 +59,7 @@
 	$data = "login=".urlencode(USERNAME);
 	$data .= "&password=".urlencode(PASSWORD);
 	$data .= "&dnsxml=".urlencode($doc->saveXML());
-
+	
 	$sslhost = $use_ssl ? "ssl://$host" : $host;
 	$fp = fsockopen($sslhost,$port,$errno,$errstr,$timeout) or die("Error: ".$errstr.$errno);
 	fputs($fp, "POST $path HTTP/1.1\r\n");
@@ -78,8 +79,8 @@
 // 	}
 	fclose($fp);
 	echo $d;
-
-	function appendToXmlDoc($doc, $type, $name, $data) {
+	
+	function appendToXmlDoc($doc, $r, $type, $name, $data) {
 		$b = $doc->createElement( "rr" );
 		$b->setAttribute("type", $type);
 		$element = $doc->createElement( "name" );
@@ -88,6 +89,6 @@
 		$element = $doc->createElement( "data" );
 		$element->appendChild( $doc->createTextNode( $data ) );
 		$b->appendChild( $element );
-		$doc->appendChild( $b );
+		$r->appendChild( $b );
 	}
 ?>
