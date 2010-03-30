@@ -3,6 +3,70 @@
 	require ( 'database.inc.php' );
 	if ( isset ( $_GET['show_source'] ) ) { die ( highlight_file ( basename ( $_SERVER['PHP_SELF'] ), 1 ) ); }
 
+	ob_start();
+	session_start();
+	header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+	header("Cache-Control: no-store, no-cache, must-revalidate");
+	header("Cache-Control: post-check=0, pre-check=0", false);
+	header("Pragma: no-cache");
+
+	if (!isset($_SESSION['Flash']))
+		$_SESSION['Flash'] = array();
+
+	if (!openlog("myvwan", LOG_ODELAY | LOG_PERROR | LOG_PID, LOG_USER))
+		die("Unable to connect to log daemon");
+
+
+
+	function mydie($message) {
+		syslog(LOG_ALERT, $_SERVER['REMOTE_ADDR'] . " [" . $_SESSION['Username'] . "] die called [" . $message . "]");
+		die($message);
+	}
+
+
+	function debug_query($query) {
+		//print_r($query);
+		return mysql_query($query);
+	}
+
+	function do_query ( $query ) {
+		$res = debug_query ( $query );
+		if ( $res )
+			return $res;
+		else {
+			echo ( "QUERY FAILED: $query\n" );
+			die ( mysql_error () );
+		}
+	}
+
+
+	function get_script_name() {
+		return (basename($_SERVER['PHP_SELF'], '.php'));
+	}
+
+
+	function myexec($cmd, &$output, &$return) {
+		syslog(LOG_NOTICE, $_SERVER['REMOTE_ADDR'] . " [" . $_SESSION['Username'] . "] Executing [" . $cmd . "]");
+		return exec($cmd, $output, $return);
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	if ( ! function_exists('array_map_recursive') ) {
 		function array_map_recursive($function, $data) {
 			foreach ( $data as $i => $item ) {
@@ -24,98 +88,24 @@
 		}
 	}
 
-	function do_query ( $query ) {
-		$res = mysql_query ( $query );
-		if ( $res )
-			return $res;
-		else {
-			echo ( "QUERY FAILED: $query\n" );
-			die ( mysql_error () );
-		}
-	}
 
-	function UserGetSalt ( $login ) {
-		$query = sprintf ( "SELECT user_salt FROM users WHERE user_login = '%s'",
-					mysql_real_escape_string ( $login )
-				);
-
-		$res = do_query ( $query );
-		if ( mysql_num_rows ( $res ) > 0 ) {
-			$salt = mysql_fetch_array ( $res );
-			return $salt[0];
-		} else
-			return false;
-	}
-
-	function UserHashPassword ( $login, $password, $salt = NULL ) {
-		if ( $salt == NULL ) {
-			$salt = UserGetSalt ( $login );
-			if ( $salt === FALSE )
-				return FALSE;
-		}
-
-		$salted = sprintf ( "%s:%s:%s",
-				_SITE_PASSWORD_SALT_,
-				$password,
-				$salt
-			);
-
-		return hash ( "sha512", $salted );
-	}
 
 	function UserValidateLogin ( $login, $password ) {
-		$query = sprintf ( "SELECT * FROM users WHERE user_login = '%s' AND user_password = '%s'",
-					mysql_real_escape_string ( $login ),
-					mysql_real_escape_string ( UserHashPassword ( $login, $password ) )
-				);
-		$res = do_query ( $query );
+		$query = sprintf("SELECT user FROM courier.users WHERE user='%s' AND clearpass='%s'",
+			mysql_real_escape_string($user),
+			mysql_real_escape_string($password)
+		);
 
-		if ( mysql_num_rows ( $res ) == 1 ) {
-			return TRUE;
-		} else {
-			return FALSE;
-		}
+		$result = debug_query($query);
+		if (mysql_num_rows($result) == 1)
+			return true;
+
+		return false;
 	}
 
-	function UserCount () {
-		$query = "SELECT COUNT(user_id) AS num_users FROM users";
-		$res = do_query ( $query );
-		$num = mysql_fetch_array ( $res );
-		return $num[0];
-	}
-
-	function SaltGenerate ( $desired_length = NULL ) {
-		if ( $desired_length == NULL ) {
-			$desired_length = rand ( 5, 20 );
-		}
-
-		srand ( (double) microtime () * 1000000 );
-		$chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~!@#$%^&*()-=_+[]{}\\|';\":/.,?><";
-		$res = "";
-		while ( strlen ( $res ) < $desired_length ) {
-			$res .= $chars [ rand ( 0, strlen ( $chars ) ) ];
-		}
-		return $res;
-	}
-
-	function UserCreate ( $login, $password ) {
-		// create salt
-		$salt = SaltGenerate ();
-		$password = UserHashPassword ( $login, $password, $salt );
-
-		$query = sprintf ( "INSERT INTO users ( user_login, user_salt, user_password ) VALUES ( '%s', '%s', '%s' )",
-					mysql_real_escape_string ( $login ),
-					mysql_real_escape_string ( $salt ),
-					mysql_real_escape_string ( $password )
-				);
-
-		$res = do_query ( $query );
-
-		return ( $res == TRUE );
-	}
 
 	function ZoneGetOwner ( $zone ) {
-		$query = sprintf ( "SELECT user_login FROM soa JOIN users ON users.user_id = soa.user_id WHERE origin = '%s'",
+		$query = sprintf ( "SELECT owner FROM soa WHERE origin = '%s'",
 					mysql_real_escape_string ( $zone )
 				);
 		$res = do_query ( $query );
@@ -205,5 +195,8 @@
 
 
 	undo_magic_quotes ();
+
+
+
 
 ?>
