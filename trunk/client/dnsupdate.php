@@ -1,12 +1,12 @@
 <?php
 	define('USERNAME', 'dummy');
 	define('PASSWORD', 'dummy');
-	$host = 'vpn.hyperbbq.com';
+	$host = 'www.myvwan.com';
 	$port = 443;
 	$path = '/dns/client_update.php';
 	$use_ssl = true;
 	$timeout = 30; // connection timeout
-	$useragent = 'HyperBBQ DNS Updater/0.1';
+	$useragent = 'MyVWAN DNS Updater/0.1';
 
 	$boxes = array();
 	// get the domain name
