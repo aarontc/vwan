@@ -90,7 +90,7 @@
 
 
 
-	function UserValidateLogin ( $login, $password ) {
+	function UserValidateLogin($user, $password) {
 		$query = sprintf("SELECT user FROM courier.users WHERE user='%s' AND clearpass='%s'",
 			mysql_real_escape_string($user),
 			mysql_real_escape_string($password)
