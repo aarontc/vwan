@@ -88,6 +88,6 @@
 		$element = $doc->createElement( "data" );
 		$element->appendChild( $doc->createTextNode( $data ) );
 		$b->appendChild( $element );
-		$r->appendChild( $b );
+		$doc->appendChild( $b );
 	}
 ?>
