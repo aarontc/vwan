@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<zone name="mann.home">
+  <rr type="a">
+    <name>dell-2100</name>
+    <data>10.3.3.161</data>
+  </rr>
+  <rr type="a">
+    <name>frank</name>
+    <data>10.3.3.138</data>
+  </rr>
+  <rr type="a">
+    <name>aurora.mann.home</name>
+    <data>10.3.3.3</data>
+  </rr>
+  <rr type="cname">
+    <name>aurora</name>
+    <data>aurora.mann.home</data>
+  </rr>
+  <rr type="a">
+    <name>router.mann.home</name>
+    <data>10.3.3.1</data>
+  </rr>
+  <rr type="cname">
+    <name>router</name>
+    <data>router.mann.home</data>
+  </rr>
+</zone>
