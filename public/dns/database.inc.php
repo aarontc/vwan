@@ -5,4 +5,4 @@
 	if(!$db)
 		mydie("unable to connect to database");
 
-?>?>
+?>
