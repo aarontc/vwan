@@ -150,13 +150,23 @@
 	}
 
 	function ZoneCreateRR ( $zone_id, $rr ) {
-		$query = sprintf ( "INSERT INTO mydns.rr ( zone, name, type, data, ttl ) VALUES ( '%s', '%s', '%s', '%s', 5 )",
+		$query = sprintf ( "INSERT INTO mydns.rr ( zone, name, type, data, ttl ) VALUES ( '%s', '%s', '%s', '%s', 300 )",
 							mysql_real_escape_string ( $zone_id ),
 							mysql_real_escape_string ( $rr['name'] ),
 							mysql_real_escape_string ( $rr['type'] ),
 							mysql_real_escape_string ( $rr['data'] )
 						);
 		$res = do_query ( $query );
+
+		// check if reverse dns zone exists
+		if (strtolower($rr['type']) == 'a') {
+			$reverse = explode('.', $rr['data']);
+			$newzone = $reverse[2] . '.' . $reverse[1] . '.' . $reverse[0] . '.in-addr.arpa.';
+			$zoneid = ZoneGetID($newzone);
+			if ( $zoneid !== false ) {
+				ZoneCreateRR($zoneid, array("name"=>$reverse[3], "type"=>"ptr", "data"=>$rr['name']));
+			}
+		}
 		return $res;
 	}
 
