@@ -78,7 +78,7 @@
 	$data .= "&password=".urlencode(PASSWORD);
 	$data .= "&dnsxml=".urlencode($doc->saveXML());
 	
-	$header = "POST $path HTTP/1.1\r\n";
+	$header = "POST $path HTTP/1.0\r\n";
 	$header .= "Host: $host\r\n";
 	$header .= "User-Agent: $useragent\r\n";
 	$header .= "Content-type: application/x-www-form-urlencoded\r\n";
