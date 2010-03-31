@@ -196,8 +196,8 @@
 
 	function PTRDelete ( $ip ) {
 		$octets = explode('.', $ip);
-		$zone = $ip[2] . '.' . $ip[1] . '.' . $ip[0] . '.in-addr.arpa.';
-		$host = $ip[3];
+		$zone = $octets[2] . '.' . $octets[1] . '.' . $octets[0] . '.in-addr.arpa.';
+		$host = $octets[3];
 
 		$zoneid = ZoneGetID($zone);
 		if ( $zoneid !== false ) {
@@ -273,7 +273,7 @@
 			ZoneCreateRR ( $id, $rr, $zone );
 		}
 
-		ZoneSetSerial ( $zone, (int)$serial + 1 );
+		ZoneIncrementSerial ( $zone );
 		return TRUE;
 	}
 
