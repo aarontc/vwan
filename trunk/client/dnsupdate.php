@@ -46,9 +46,10 @@
 			if($p[3] != "*") appendToXmlDoc($doc, $r, "a", $p[3], $p[2]);
 		}
 	}
-	if($be_verbose) echo "done.\n";
-	
-	if($be_verbose) echo "Parsing hosts...";
+	if($be_verbose) {
+		echo "done.\n";
+		echo "Parsing hosts...";
+	}
 	for($i = 0; $i < $b; $i++) {
 		if(strlen($f[2][$i]) > 0 && !preg_match("/^[\s]*#/", $f[2][$i])) { // parse hosts
 			$p = preg_split("/[\s]+/", $f[2][$i], -1, PREG_SPLIT_NO_EMPTY);
@@ -77,34 +78,43 @@
 	$data .= "&password=".urlencode(PASSWORD);
 	$data .= "&dnsxml=".urlencode($doc->saveXML());
 	
+	$header = "POST $path HTTP/1.1\r\n";
+	$header .= "Host: $host\r\n";
+	$header .= "User-Agent: $useragent\r\n";
+	$header .= "Content-type: application/x-www-form-urlencoded\r\n";
+	$header .= "Content-length: ".strlen($data)."\r\n";
+	$header .= "Connection: close\r\n\r\n";
+	
 	if($be_verbose) echo "Sending info...";
 	$sslhost = $use_ssl ? "ssl://$host" : $host;
 	$fp = fsockopen($sslhost,$port,$errno,$errstr,$timeout) or die("Error: ".$errstr.$errno);
-	fputs($fp, "POST $path HTTP/1.1\r\n");
-	fputs($fp, "Host: $host\r\n");
-	fputs($fp, "User-Agent: $useragent\r\n");
-	fputs($fp, "Content-type: application/x-www-form-urlencoded\r\n");
-	fputs($fp, "Content-length: ".strlen($data)."\r\n");
-	fputs($fp, "Connection: close\r\n\r\n");
-	fputs($fp, $data);
+	fwrite($fp, $header.$data);
 	if($be_verbose) echo "done.\n";
 	
 	if($be_verbose) echo "Waiting for server response...";
-	while(!feof($fp)) $d .= fgets($fp,4096);
-// 	while(!feof($fp)) {
-// 		$d = fgets($fp,4096);
-// 		if(preg_match("/^SUCCESS|^ERROR/i", $d)) { // only display the line that starts with 'SUCCESS' or 'ERROR'
-// 			echo $d;
-// 		}
-// 	}
+	$se = "";
+	$s = 0;
+	if(defined('DEBUG')) {
+		$se = "";
+		while(!feof($fp)) $se .= fgets($fp,4096);
+		$s = strlen($se);
+	} else {
+		while(!feof($fp)) {
+			$d = fgets($fp,4096);
+			$s += strlen($d);
+			if(preg_match("/^SUCCESS|^ERROR/i", $d)) { // only display the line that starts with 'SUCCESS' or 'ERROR'
+				$se = $d;
+			}
+		}
+	}
 	fclose($fp);
 	if($be_verbose) {
-		if(strlen($d) > 0)
+		if($s > 0)
 			echo "got it.\n";
 		else
 			echo "no response from server!\n";
 	}
-	echo $d;
+	echo $se;
 	
 	function appendToXmlDoc($doc, $r, $type, $name, $data) {
 		$b = $doc->createElement( "rr" );
