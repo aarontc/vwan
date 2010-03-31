@@ -130,6 +130,19 @@
 		}
 	}
 
+	function ZoneGetOriginByID ( $zone_id ) {
+		$query = sprintf ( "SELECT origin FROM mydns.soa WHERE id = '%s'",
+						mysql_real_escape_string ( $zone_id )
+						);
+		$res = do_query ( $query );
+		if ( $id = mysql_fetch_array ( $res ) ) {
+			return $id[0];
+		} else {
+			return FALSE;
+		}
+	}
+
+
 	function ZoneGetSerial ( $zone ) {
 		$query = sprintf ( "SELECT serial FROM mydns.soa WHERE origin = '%s'",
 						mysql_real_escape_string ( $zone )
@@ -142,12 +155,42 @@
 		}
 	}
 
+	function ZoneIncrementSerial ( $zone ) {
+		$serial = ZoneGetSerial($zone);
+		$today = gmdate('Ymd');
+		if(substr($serial, 0, 8) != $today) {
+			if ( (int)substr($serial, 0, 8) > (int)$today) {
+				die("Serial number in future on zone $zone");
+			}
+
+			$newserial = $today . '01';
+		} else {
+			$modcount = (int)substr($serial, 9, 2);
+			if ($modcount >= 99) {
+				die("Zone was changed more than 99 times today");
+			} else {
+				$modcount ++;
+				$newserial = $today . sprintf("%02d", $modcount);
+			}
+		}
+
+		ZoneSetSerial($zone, $newserial);
+	}
+
+
+	function ZoneIncrementSerialByID ( $zone_id ) {
+		$zone = ZoneGetOriginByID ( $zone_id );
+		ZoneIncrementSerial ( $zone );
+	}
+
 	function ZoneDeleteRR ( $zone_id, $name ) {
 		$query = sprintf ( "DELETE FROM mydns.rr WHERE zone = '%s' AND name = '%s'",
 							mysql_real_escape_string ( $zone_id ),
 							mysql_real_escape_string ( $name )
 						);
 		$res = do_query ( $query );
+		ZoneIncrementSerialByID ( $zone_id );
+
 		return $res;
 	}
 
@@ -167,7 +210,7 @@
 							mysql_real_escape_string ( $zone_id )
 						);
 		$res = do_query ( $query );
-		foreach ( $row = mysql_fetch_array ( $res ) ) {
+		while ( $row = mysql_fetch_array ( $res ) ) {
 			PTRDelete ( $row[0] );
 		}
 	}
