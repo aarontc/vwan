@@ -142,7 +142,38 @@
 		}
 	}
 
+	function ZoneDeleteRR ( $zone_id, $name ) {
+		$query = sprintf ( "DELETE FROM mydns.rr WHERE zone = '%s' AND name = '%s'",
+							mysql_real_escape_string ( $zone_id ),
+							mysql_real_escape_string ( $name )
+						);
+		$res = do_query ( $query );
+		return $res;
+	}
+
+	function PTRDelete ( $ip ) {
+		$octets = explode('.', $ip);
+		$zone = $ip[2] . '.' . $ip[1] . '.' . $ip[0] . '.in-addr.arpa.';
+		$host = $ip[3];
+
+		$zoneid = ZoneGetID($zone);
+		if ( $zoneid !== false ) {
+			ZoneDeleteRR($zoneid, $host);
+		}
+	}
+
+	function PTRDeleteAllbyZone ( $zone_id ) {
+		$query = sprintf ( "SELECT data FROM mydns.rr WHERE zone='%s' AND type='A'",
+							mysql_real_escape_string ( $zone_id )
+						);
+		$res = do_query ( $query );
+		foreach ( $row = mysql_fetch_array ( $res ) ) {
+			PTRDelete ( $row[0] );
+		}
+	}
+
 	function ZoneDeleteRRs ( $zone_id ) {
+		PTRDeleteAllByZone ( $zone_id );
 		$query = sprintf ( "DELETE FROM mydns.rr WHERE zone = '%s'",
 						mysql_real_escape_string ( $zone_id )
 						);
@@ -164,7 +195,7 @@
 			$newzone = $reverse[2] . '.' . $reverse[1] . '.' . $reverse[0] . '.in-addr.arpa.';
 			$zoneid = ZoneGetID($newzone);
 			if ( $zoneid !== false ) {
-				ZoneCreateRR($zoneid, array("name"=>$reverse[3], "type"=>"ptr", "data"=>$rr['name'] . $zonename));
+				ZoneCreateRR($zoneid, array("name"=>$reverse[3], "type"=>"ptr", "data"=>$rr['name'] . '.' . $zonename));
 			}
 		}
 		return $res;
