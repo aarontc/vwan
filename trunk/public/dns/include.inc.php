@@ -149,7 +149,7 @@
 		$res = do_query ( $query );
 	}
 
-	function ZoneCreateRR ( $zone_id, $rr ) {
+	function ZoneCreateRR ( $zone_id, $rr, $zonename="" ) {
 		$query = sprintf ( "INSERT INTO mydns.rr ( zone, name, type, data, ttl ) VALUES ( '%s', '%s', '%s', '%s', 300 )",
 							mysql_real_escape_string ( $zone_id ),
 							mysql_real_escape_string ( $rr['name'] ),
@@ -164,7 +164,7 @@
 			$newzone = $reverse[2] . '.' . $reverse[1] . '.' . $reverse[0] . '.in-addr.arpa.';
 			$zoneid = ZoneGetID($newzone);
 			if ( $zoneid !== false ) {
-				ZoneCreateRR($zoneid, array("name"=>$reverse[3], "type"=>"ptr", "data"=>$rr['name']));
+				ZoneCreateRR($zoneid, array("name"=>$reverse[3], "type"=>"ptr", "data"=>$rr['name'] . $zonename));
 			}
 		}
 		return $res;
@@ -196,7 +196,7 @@
 
 		// insert RRs
 		foreach ( $rr_list as $rr ) {
-			ZoneCreateRR ( $id, $rr );
+			ZoneCreateRR ( $id, $rr, $zone );
 		}
 
 		ZoneSetSerial ( $zone, (int)$serial + 1 );
