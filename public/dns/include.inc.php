@@ -217,7 +217,7 @@
 
 	function ZoneDeleteRRs ( $zone_id ) {
 		PTRDeleteAllByZone ( $zone_id );
-		$query = sprintf ( "DELETE FROM mydns.rr WHERE zone = '%s'",
+		$query = sprintf ( "DELETE FROM mydns.rr WHERE zone = '%s' AND type != 'NS'",
 						mysql_real_escape_string ( $zone_id )
 						);
 		$res = do_query ( $query );
