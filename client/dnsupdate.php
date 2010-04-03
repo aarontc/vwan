@@ -59,8 +59,9 @@
 					if(!preg_match("/[\.]|localhost/", $p[$j])) { // make sure that we didn't just find a fully qualified domain name or 'localhost'
 						if(!$found_host_name) { // have we found the host name?
 							$found_host_name = true;
+							$type = strpos($p[0], ":") !== false ? "aaaa" : "a"; // is this is an IPv6 address make it an 'aaaa' entry
 							// build XML here
-							appendToXmlDoc($doc, $r, "a", $p[$j], $p[0]);
+							appendToXmlDoc($doc, $r, $type, $p[$j], $p[0]);
 						} else { // ...if so, the rest are 'cname' entries
 							// build XML here
 							appendToXmlDoc($doc, $r, "cname", $p[$j], $p[0]);
